@@ -26,13 +26,16 @@ import re
 import os
 
 APP_TITLE = "Printer Toolkit"
-APP_VERSION = "1.6"
+APP_VERSION = "1.7"
 APP_AUTHOR = "Matthew Deiter"
 APP_WEBSITE = "https://matthewdeiter.com"
 APP_REPO = "https://github.com/mjdeiter/printer-toolkit"
 
 # (version, notes) — newest first. Add a line here with every version bump.
 CHANGELOG = [
+    ("1.7", "Fixed a typo (Gtk.ResponseType.YeS) that made the Yes button on the "
+            "Clear Stuck Jobs confirmation raise an AttributeError instead of "
+            "cancelling jobs — clearing a stuck queue from the GUI was broken."),
     ("1.6", "Fixed the socket/JetDirect URI in Add Network Printer: it was "
             "building socket://{ip}:99100 (stray extra digit, plus a stray "
             "'+' before the dict key) instead of the correct port 9100 — "
@@ -495,7 +498,7 @@ class PrinterToolkit(Gtk.Window):
         )
         response = dialog.run()
         dialog.destroy()
-        if response == Gtk.ResponseType.YeS:
+        if response == Gtk.ResponseType.YES:
             self.set_status("Clearing print jobs…")
             self.run_async(self._clear_jobs)
 

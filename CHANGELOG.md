@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.7 - 2026-09-17
+### Fixed
+- `Gtk.ResponseType.YeS` typo made the **Yes** button on the Clear Stuck Jobs
+  confirmation raise an `AttributeError` instead of cancelling jobs, so
+  clearing a stuck queue from the GUI silently did nothing.
+
+## v1.6 - 2026-09-17
+### Fixed
+- Add Network Printer built `socket://{ip}:99100` (stray extra digit, plus a
+  stray `+` before the dict key) instead of port 9100, so adding a
+  raw/JetDirect printer was broken.
+
+## v1.5 - 2026-09-17
+### Added
+- Network scan now reports MAC addresses: the nmap path runs `sudo -n` so it
+  ARP-scans the subnet, and the manual-sweep fallback resolves each host's MAC
+  via `ip neigh`/`arp`. Replaces the standalone `find-printers.sh` on the
+  Surface, which duplicated this scan.
+
 ## v1.4 - 2026-09-17
 ### Fixed
 - Published to this repo. The About dialog's Source link previously pointed
