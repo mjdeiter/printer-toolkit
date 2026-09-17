@@ -26,13 +26,17 @@ import re
 import os
 
 APP_TITLE = "Printer Toolkit"
-APP_VERSION = "1.5"
+APP_VERSION = "1.6"
 APP_AUTHOR = "Matthew Deiter"
 APP_WEBSITE = "https://matthewdeiter.com"
 APP_REPO = "https://github.com/mjdeiter/printer-toolkit"
 
 # (version, notes) — newest first. Add a line here with every version bump.
 CHANGELOG = [
+    ("1.6", "Fixed the socket/JetDirect URI in Add Network Printer: it was "
+            "building socket://{ip}:99100 (stray extra digit, plus a stray "
+            "'+' before the dict key) instead of the correct port 9100 — "
+            "adding a raw/JetDirect printer was silently broken."),
     ("1.5", "Network scan now reports MAC addresses (nmap path runs sudo -n "
             "so it ARP-scans the subnet; manual-sweep fallback looks up each "
             "host's MAC via ip neigh/arp). Replaces the standalone "
@@ -599,7 +603,7 @@ class PrinterToolkit(Gtk.Window):
             return
 
         uri = {
-+            0: f"socket://{ip}:99100",
+            0: f"socket://{ip}:9100",
             1: f"ipp://{ip}/ipp/print",
             2: f"lpd://{ip}/queue",
         }[proto_idx]
