@@ -26,13 +26,18 @@ import re
 import os
 
 APP_TITLE = "Printer Toolkit"
-APP_VERSION = "1.4"
+APP_VERSION = "1.5"
 APP_AUTHOR = "Matthew Deiter"
 APP_WEBSITE = "https://matthewdeiter.com"
 APP_REPO = "https://github.com/mjdeiter/printer-toolkit"
 
 # (version, notes) — newest first. Add a line here with every version bump.
 CHANGELOG = [
+    ("1.5", "Network scan now reports MAC addresses (nmap path runs sudo -n "
+            "so it ARP-scans the subnet; manual-sweep fallback looks up each "
+            "host's MAC via ip neigh/arp). Replaces the standalone "
+            "find-printers.sh script on the Surface, which did the same "
+            "scan on its own."),
     ("1.4", "Published to its own repo (github.com/mjdeiter/printer-toolkit); "
             "fixed the About dialog's Source link, which was still pointing "
             "at the unrelated HP_P1102w_Printer_Diagnostic_Tool repo."),
@@ -399,7 +404,9 @@ class PrinterToolkit(Gtk.Window):
         self.log(f"Port-sweeping {subnet} for printer ports (9100, 631, 515)...")
         if have("nmap"):
             ports = ",".join(str(p) for p, _ in COMMON_PORTS)
-            rc, out = run(f"nmap -T4 --open -p {ports} {subnet}", timeout=90)
+            # sudo -n so nmap ARP-scans the local subnet and reports each
+            # host's MAC address alongside its open ports, not just the ports.
+            rc, out = run(f"nmap -T4 --open -p {ports} {subnet}", timeout=90, use_sudo=True)
             self.log(out if out else "  nmap returned nothing.")
         else:
             self.log("  nmap not installed — doing a slower manual sweep "
@@ -416,12 +423,28 @@ class PrinterToolkit(Gtk.Window):
             host = str(host)
             for port, name in COMMON_PORTS:
                 if self._port_open(host, port, timeout=0.15):
-                    hits.append(f"  {host}:{port} open ({name})")
+                    mac = self._get_mac(host)
+                    hits.append(f"  {host}:{port} open ({name}) — MAC {mac}")
         if hits:
             for h in hits:
                 self.log(h)
         else:
             self.log("  No hosts found with printer ports open.")
+
+    def _get_mac(self, host):
+        """Look up a host's MAC in the local ARP/neighbor table (populated
+        by the TCP connect just made to it in _port_open)."""
+        rc, out = run(f"ip neigh show {host}")
+        for line in out.splitlines():
+            parts = line.split()
+            if "lladdr" in parts:
+                return parts[parts.index("lladdr") + 1]
+        rc, out = run(f"arp -n {host}")
+        for line in out.splitlines():
+            for tok in line.split():
+                if re.fullmatch(r"([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}", tok):
+                    return tok
+        return "(unknown)"
 
     def _ping(self, host, timeout=2):
         rc, _ = run(f"ping -c 1 -W {timeout} {host}", timeout=timeout + 2)
