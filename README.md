@@ -16,8 +16,9 @@ audit every queue for problems, not just one.
 ## Features
 
 - Full diagnostic scan (ping, port checks, CUPS status, stuck jobs)
-- Scan the local subnet for JetDirect/IPP/LPD printers (nmap/avahi-browse if
-  available, manual sweep as a fallback)
+- Scan the local subnet for JetDirect/IPP/LPD printers, with MAC addresses
+  (nmap/avahi-browse if available, manual sweep as a fallback). Replaces the
+  standalone `find-printers.sh` script that used to live on the Surface.
 - List configured CUPS printers and show the print queue
 - Detect duplicate CUPS queues pointing at the same device, and audit device
   URIs across all queues
@@ -33,7 +34,9 @@ audit every queue for problems, not just one.
 - `python3-gi` (PyGObject, GTK 3)
 - CUPS client tools: `lpstat`, `lpadmin`, `cancel`, `lpinfo`
 - Optional: `nmap` or `avahi-browse` for network scanning (falls back to a
-  manual subnet sweep if neither is present)
+  manual subnet sweep if neither is present). Passwordless `sudo` for `nmap`
+  is needed to get MAC addresses in scan results; without it you still get
+  IPs and open ports.
 
 ## Deployment
 
